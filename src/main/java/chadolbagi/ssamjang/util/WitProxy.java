@@ -17,10 +17,25 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class HttpProxy {
+public class WitProxy {
+    @Value("${wit-ai.app-id}")
+    String appId;
+    
+    @Value("${wit-ai.client-token}")
+    String clientToken;
+
+    @Value("${wit-ai.server-token}")
+    String serverToken;
+
+    @Value("${wit-ai.version}")
+    String version;
+
+    private final String baseUrl = "https://api.wit.ai";
+
     private static final Logger log = LogManager.getLogger(HttpProxy.class);
 
     private CloseableHttpClient httpClient;
@@ -30,8 +45,17 @@ public class HttpProxy {
         httpClient = HttpClientUtil.getHttpClient(20 * 1000);
     }
 
-    public String get(String url) throws Exception {
-        HttpGet httpGet = new HttpGet(url);
+    public String getUrl(Api api, Map<String, String> queryParams) {
+        String url = baseUrl + api.getEndpoint() + "?v=" + version;
+        for(String key: queryParams.keySet()) {
+            url += ("&" + key + "=" + queryParams.get(key));
+        }
+        return url;
+    }
+
+    public String get(Api api, Map<String, String> queryParams) throws Exception {
+        HttpGet httpGet = new HttpGet(getUrl(api, queryParams));
+        httpGet.setHeader("Authorization", "Bearer " + serverToken);
         httpGet.setHeader("Content-Type", "application/json; charset=utf-8");
 
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
@@ -41,14 +65,20 @@ public class HttpProxy {
             }
             return EntityUtils.toString(response.getEntity(), "utf-8");
         } catch (Exception e) {
-            log.error(Map.of("url", url), e);
+            log.error(Map.of("baseUrl", baseUrl), e);
             throw e;
         }
     }
 
-    public String post(String url, String body, Map<String, String> additionalHeaders) throws Exception {
-        HttpPost httpPost = new HttpPost(url);
+    public String get(Api api) throws Exception {
+        return get(api, Map.of());
+    }
+
+    public String post(Api api, String body, Map<String, String> additionalHeaders) throws Exception {
+        // TODO: https://wit.ai/docs/http/20200513#post__speech_link 를 참고해서 additionalHeaders 에 올 것들 미리 정의할지?
+        HttpPost httpPost = new HttpPost(getUrl(api, Map.of()));
         httpPost.setEntity(EntityBuilder.create().setBinary(body.getBytes()).build());
+        httpPost.setHeader("Authorization", "Bearer " + serverToken);
         httpPost.setHeader("Content-type", "application/json");
         additionalHeaders.entrySet().forEach(entry -> httpPost.setHeader(entry.getKey(), entry.getValue()));
 
@@ -59,19 +89,20 @@ public class HttpProxy {
             }
             return EntityUtils.toString(response.getEntity(), "utf-8");
         } catch (Exception e) {
-            log.error(Map.of("url", url, "body", body), e);
+            log.error(Map.of("baseUrl", baseUrl, "body", body), e);
             throw e;
         }
     }
 
-    public String post(String url, String body) throws Exception {
-        return post(url, body, Map.of());
+    public String post(Api api, String body) throws Exception {
+        return post(api, body, Map.of());
     }
 
-    public String form(String url, List<NameValuePair> params) throws Exception {
-        HttpPost httpPost = new HttpPost(url);
+    public String form(Api api, List<NameValuePair> params) throws Exception {
+        HttpPost httpPost = new HttpPost(getUrl(api, Map.of()));
         httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-        httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");
+        httpPost.setHeader("Authorization", "Bearer " + serverToken);
+        httpPost.setHeader("Content-type", "application/x-www-form-baseUrlencoded");
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
             int statusCode = response.getStatusLine().getStatusCode();
@@ -80,7 +111,7 @@ public class HttpProxy {
             }
             return EntityUtils.toString(response.getEntity(), "utf-8");
         } catch (Exception e) {
-            log.error(Map.of("url", url, "params", params), e);
+            log.error(Map.of("baseUrl", baseUrl, "params", params), e);
             throw e;
         }
     }
@@ -88,5 +119,18 @@ public class HttpProxy {
     @PreDestroy
     public void teardown() throws Exception {
         httpClient.close();
+    }
+
+    public enum Api {
+        Message("message"), Speech("speech"), Intent("intents"), Entity("entities"), Trait("traits"), Utterance("utterances");
+
+        String endpoint;
+        Api(String endpoint) {
+            this.endpoint = endpoint;
+        }
+        public String getEndpoint() {
+            return this.endpoint;
+        }
+
     }
 }

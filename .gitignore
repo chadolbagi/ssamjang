@@ -1,17 +1,3 @@
-/.gradle/
-bin/
-build/
-.DS_Store
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**
-!**/src/test/**
-application-dev.yaml
-application-prod.yaml
-
-# Custom Data
-operator_data/
-.DS_Store
-
 # Spring Boot
 HELP.md
 .gradle
@@ -69,3 +55,14 @@ out/
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Custom ignores
+bin/
+build/
+.DS_Store
+application-dev.yaml
+application-prod.yaml
+
+# Custom Data Files
+operator_data/
+.DS_Store

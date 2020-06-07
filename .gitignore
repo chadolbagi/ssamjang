@@ -5,6 +5,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**
 !**/src/test/**
+application-dev.yaml
+application-prod.yaml
 
 # Custom Data
 operator_data/

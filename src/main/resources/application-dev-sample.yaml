@@ -1,0 +1,12 @@
+spring:
+  devtools:
+    livereload:
+      enabled:
+    restart:
+      enabled:
+  auth:
+
+wit-ai:
+  app-id:
+  client-token:
+  server-token:

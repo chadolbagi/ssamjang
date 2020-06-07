@@ -1,7 +1,0 @@
-spring:
-  devtools:
-    livereload:
-      enabled: true
-    restart:
-      enabled: true
-  auth: f18qLz6eHOGk15xF9eogyuJhy18jN0gP2nA16jh102514A15

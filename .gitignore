@@ -1,3 +1,7 @@
+# Custom Data
+operator_data/
+.DS_Store
+
 # Spring Boot
 HELP.md
 .gradle

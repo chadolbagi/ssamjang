@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration status="WARN">
+	<appenders>
+		<Console name="consoleLog" target="SYSTEM_OUT">
+			<JsonLayout compact="true" eventEol="true"
+				objectMessageAsJsonObject="true" />
+		</Console>
+	</appenders>
+	<Loggers>
+		<Root level="info">
+			<AppenderRef ref="consoleLog" />
+		</Root>
+	</Loggers>
+</configuration>

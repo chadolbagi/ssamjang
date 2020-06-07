@@ -17,10 +17,20 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HttpProxy {
+    @Value("${wit-ai.app-id}")
+    String appId;
+    
+    @Value("${wit-ai.client-token}")
+    String clientToken;
+
+    @Value("${wit-ai.server-token}")
+    String serverToken;
+
     private static final Logger log = LogManager.getLogger(HttpProxy.class);
 
     private CloseableHttpClient httpClient;
@@ -32,6 +42,7 @@ public class HttpProxy {
 
     public String get(String url) throws Exception {
         HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Authorization", "Bearer " + serverToken);
         httpGet.setHeader("Content-Type", "application/json; charset=utf-8");
 
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
@@ -49,6 +60,7 @@ public class HttpProxy {
     public String post(String url, String body, Map<String, String> additionalHeaders) throws Exception {
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(EntityBuilder.create().setBinary(body.getBytes()).build());
+        httpPost.setHeader("Authorization", "Bearer " + serverToken);
         httpPost.setHeader("Content-type", "application/json");
         additionalHeaders.entrySet().forEach(entry -> httpPost.setHeader(entry.getKey(), entry.getValue()));
 
@@ -71,6 +83,7 @@ public class HttpProxy {
     public String form(String url, List<NameValuePair> params) throws Exception {
         HttpPost httpPost = new HttpPost(url);
         httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+        httpPost.setHeader("Authorization", "Bearer " + serverToken);
         httpPost.setHeader("Content-type", "application/x-www-form-urlencoded");
 
         try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
